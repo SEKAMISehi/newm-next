@@ -57,8 +57,11 @@ Goals include:
 - [x] investigate various bugs that have been filed
 - [x] get newm to build without having ugly wlroots errors sometimes.
 
-
-
+## Last update 11.03.2025
+- 1. The downtime mode is redesigned allowing it to configure it flexibly in an additional configuration file: QS_power.py OR QS_power_default.py in default settings
+- 2. A socket has been added to work with keyboard layouts with the possibility of monitoring the current layout on the top panel (can be changed in the config)
+- 3. The mechanism of working with key combinations has been redesigned, now you can use a combination of modifiers without letters to execute commands (earlier the elaboration of letters was mandatory if more than one modifier consisted in the key combination)
+- 4. The mechanism for working with key combinations on other layouts has been modified, also to add user templates for comparing symbols for the layout, a new optional configuration file was added: QS_layoyts.py . By default, it is certainly supported by english:us, as well as russian:none, ukrainian:none, и japanese:kana.
 ## Installing
 
 ### Arch Linux
@@ -160,6 +163,46 @@ pywm = {
     'xkb_options': "caps:escape",
 }
 ```
+
+
+### QS_power configuration
+default configuration file is `/usr/lib/pythonX.XX/site-packages/newm/QS_power_default.py`
+QS_power support `$HOME/.config/newm/QS_power.py` and `/etc/newm/QS_power.py` for the work of its configuration
+in configure file:
+
+#times in seconds; one minute = 60 seconds
+minute = 60
+hour = 60*minute
+# QS_operation: light, display_off, lock_screen, suspend, hibernate, none
+energy = {
+    "QS_idle_times": [minute*10, minute*20, minute*40],
+    "QS_operation": {
+        minute*10: "light",
+        minute*20: "light",
+        minute*40: "display_off",
+    },
+    "QS_power_value": {
+        minute*10: "40%-",
+        minute*20: "20%-",
+    }
+}
+### QS_layoyts configuration
+default configuration file is `/usr/lib/pythonX.XX/site-packages/newm/helper/lang_layout/layouts.py`
+QS_layoyts support `$HOME/.config/newm/QS_layoyts.py` and `/etc/newm/QS_layoyts.py` for the work of its configuration
+in configure file:
+letters = {
+# Keysyms for QWERTY
+    'english:us' : ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p','bracketleft', 'bracketright', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l','semicolon', 'apostrophe', 'backslash', 'z', 'x', 'c', 'v', 'b', 'n', 'm','comma', 'period', 'slash'],
+# Keysyms for russian layout
+    'russian:none' : ['Cyrillic_shorti', 'Cyrillic_tse', 'Cyrillic_u', 'Cyrillic_ka', 'Cyrillic_ie', 'Cyrillic_en', 'Cyrillic_ghe', 'Cyrillic_sha','Cyrillic_shcha', 'Cyrillic_ze', 'Cyrillic_ha', 'Cyrillic_hardsign', 'Cyrillic_ef', 'Cyrillic_yeru', 'Cyrillic_ve', 'Cyrillic_a','Cyrillic_pe', 'Cyrillic_er', 'Cyrillic_o', 'Cyrillic_el', 'Cyrillic_de', 'Cyrillic_zhe', 'Cyrillic_e', 'backslash','Cyrillic_ya', 'Cyrillic_che', 'Cyrillic_es', 'Cyrillic_em', 'Cyrillic_i', 'Cyrillic_te', 'Cyrillic_softsign', 'Cyrillic_be','Cyrillic_yu', 'period'],
+
+# Keysyms for ukrainian layout
+    'ukrainian:none' : ['Cyrillic_shorti', 'Cyrillic_tse', 'Cyrillic_u', 'Cyrillic_ka', 'Cyrillic_ie', 'Cyrillic_en', 'Cyrillic_ghe', 'Cyrillic_sha', 'Cyrillic_shcha', 'Cyrillic_ze', 'Cyrillic_ha', 'Ukrainian_yi', 'Cyrillic_ef', 'Ukrainian_i', 'Cyrillic_ve', 'Cyrillic_a', 'Cyrillic_pe', 'Cyrillic_er', 'Cyrillic_o', 'Cyrillic_el', 'Cyrillic_de', 'Cyrillic_zhe', 'Ukrainian_ie', 'backslash', 'Cyrillic_ya', 'Cyrillic_che', 'Cyrillic_es', 'Cyrillic_em', 'Cyrillic_i', 'Cyrillic_te', 'Cyrillic_softsign', 'Cyrillic_be','Cyrillic_yu', 'Ukrainian_ghe_with_upturn', 'period'],
+# Keysyms for japanese layout
+    'japanese:kana' : ['kana_TA', 'kana_TE', 'kana_I', 'kana_SU', 'kana_KA', 'kana_N', 'kana_NA', 'kana_NI', 'kana_RA', 'kana_SE', 'voicedsound', 'semivoicedsound', 'kana_CHI', 'kana_TO', 'kana_SHI', 'kana_HA', 'kana_KI', 'kana_KU', 'kana_MA', 'kana_NO', 'kana_RI', 'kana_RE', 'kana_KE', 'kana_MU', 'kana_TSU', 'kana_SA', 'kana_SO', 'kana_HI', 'kana_KO', 'kana_MI','kana_MO', 'kana_NE', 'kana_RU', 'kana_ME'
+    ],
+}
+
 
 ### Configuring
 

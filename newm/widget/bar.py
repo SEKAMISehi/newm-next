@@ -16,15 +16,15 @@ if TYPE_CHECKING:
     from ..state import LayoutState
     from ..layout import Layout, Workspace
 
-conf_top_bar_height = configured_value('panels.top_bar.native.height', 20)
+conf_top_bar_height = configured_value('panels.top_bar.native.height', 26)
 conf_top_bar_font_size = configured_value('panels.top_bar.native.font_size', 12)
 conf_top_bar_font = configured_value('panels.top_bar.native.font', 'Source Code Pro for Powerline')
-conf_top_bar_text = configured_value('panels.top_bar.native.texts', lambda: ["1", "2", "3"])
+conf_top_bar_text = configured_value('panels.top_bar.native.texts', lambda: [""])
 
-conf_bottom_bar_height = configured_value('panels.bottom_bar.native.height', 20)
+conf_bottom_bar_height = configured_value('panels.bottom_bar.native.height', 26)
 conf_bottom_bar_font_size = configured_value('panels.bottom_bar.native.font_size', 12)
 conf_bottom_bar_font = configured_value('panels.bottom_bar.native.font', 'Source Code Pro for Powerline')
-conf_bottom_bar_text = configured_value('panels.bottom_bar.native.texts', lambda: ["4", "5", "6"])
+conf_bottom_bar_text = configured_value('panels.bottom_bar.native.texts', lambda: [""])
 
 
 class Bar(PyWMCairoWidget, Animate[PyWMWidgetDownstreamState], Animatable):

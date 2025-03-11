@@ -133,7 +133,6 @@ def configured_value(path: str, default: Optional[T]=None) -> Callable[[], T]:
 
 if __name__ == '__main__':
     pywm = configured_value('pywm', cast(dict[str, Any], {}))
-
     while True:
         print("PyWM is %s" % pywm())
         input("Update? ")

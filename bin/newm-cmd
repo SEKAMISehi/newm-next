@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 from typing import Optional
 import argparse
 from newm import cmd
@@ -48,6 +48,16 @@ commands: dict[str, tuple[str, dict[str, str]]] = {
         "Unlocks the screen",
         {},
         ),
+    "terminate": (
+        "terminate system",
+        {},
+        ),
+    "fullscreen_check": (
+        "",
+        {},
+        ),
+
+
     "open-virtual-output": (
         "Opens a new virtual output (see newm-sidecar)",
         {"output_name": "newm-cmd open-virtual-output <name>"},

@@ -7,6 +7,7 @@ import logging
 import os
 from itertools import product
 from threading import Thread
+from newm.helper.power_manages import QS_power_functions
 
 from pywm import (
     PyWM,
@@ -43,6 +44,7 @@ from .overlay import (
 
 logger = logging.getLogger(__name__)
 
+
 conf_pywm = configured_value("pywm", cast(dict[str, Any], {}))
 
 conf_outputs = configured_value("outputs", cast(list[dict[str, Any]], []))
@@ -58,21 +60,6 @@ conf_key_bindings = configured_value("key_bindings", cast(TKeyBindings, lambda l
 
 conf_anim_t = configured_value("anim_time", .3)
 conf_blend_t = configured_value("blend_time", 1.0)
-
-conf_idle_times = configured_value("energy.idle_times", [120, 300, 600])
-conf_suspend_command = configured_value("energy.suspend_command", "systemctl suspend")
-
-"""
-code == 'lock': Called on lock - idea is to dim the screen now
-code == 'idle': Called after idle_times[0] has passed
-code == 'idle-lock': Called after idle_times[1] has passed - the screen is locked additionally
-code == 'idle-presuspend': Called after idle_times[2]-5sec has passed - the computer is going to suspend
-code == 'idle-suspend': Called after idle_times[2] has passed - the computer is suspended additionally
-code == 'active': Called on activity after idle
-code == 'sleep': Called on sleep - maybe set backlight to zero
-code == 'wakeup': Called on wakeup - maybe blend backlight in (may be called twice)
-"""
-conf_idle_callback = configured_value("energy.idle_callback", lambda code: None)
 
 conf_on_startup = configured_value("on_startup", lambda: None)
 conf_on_reconfigure = configured_value("on_reconfigure", lambda: None)
@@ -93,7 +80,6 @@ conf_gesture_binding_swipe_to_zoom = configured_value("gesture_bindings.swipe_to
 conf_gesture_binding_swipe = configured_value("gesture_bindings.swipe", (None, "swipe-3"))
 conf_gesture_binding_move_resize = configured_value("gesture_bindings.move_resize", ("L", "move-1", "swipe-2"))
 conf_gesture_binding_launcher = configured_value("gesture_bindings.launcher", (None, "swipe-5"))
-
 
 def _score(
     i1: float,
@@ -627,6 +613,7 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
         self.thread.push(Animation(self, reducer, duration, then, overlay_safe))
 
     def update(self, new_state: LayoutState) -> None:
+
         self.state = new_state
         self.damage()
 
@@ -664,7 +651,6 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
     """
     Utilities
     """
-
     def __str__(self) -> str:
         return "<Layout %s>" % (self.config)
 
@@ -766,7 +752,7 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
         """
         These are processed via on_modifiers
         """
-        if keysyms in ["Super_L", "Super_R", "Alt_L", "Alt_R", "Logo_L", "Logo_R"]:
+        if keysyms in ["Super_L", "Super_R", "Alt_L", "Alt_R", "Shift_L", "Shift_R", "Logo_L", "Logo_R"]:
             return False
 
         if self.overlay is not None and self.overlay.ready():
@@ -942,33 +928,69 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
                 return True
 
         return False
-
+    #idle function
     def on_idle(self, elapsed: float, idle_inhibited: bool) -> None:
+
         idle_inhibited = idle_inhibited or self._idle_inhibit_user
 
         if idle_inhibited and elapsed > 0:
             return
 
+        def perform_operation(operation, power_value=None):
+            if operation == "light":
+                if power_value is not None:
+                    os.system(f"brightnessctl set {power_value}")
+            elif operation == "display_off":
+                os.system(QS_power_functions.display_off)
+            elif operation == "lock_screen":
+                os.system(QS_power_functions.lock_screen)
+            elif operation == "suspend":
+                os.system(QS_power_functions.suspend)
+            elif operation == "hibernate":
+                os.system(QS_power_functions.hibernate)
+            elif operation == "none":
+                print("none")
+
+
+        def restore_activity():
+                os.system(f"brightnessctl set {QS_power_functions.QS_current_light}")
+                QS_power_functions.power_check = {}
+
+
+        def handle_idle(elapsed):
+            power_value = ""
+            operation = ""
+
+            for time_limit in QS_power_functions.energy["QS_idle_times"]:
+                if elapsed >= time_limit:
+                    if time_limit in QS_power_functions.power_check:
+                        print("isset")
+                    else:
+                        operation = QS_power_functions.energy["QS_operation"].get(time_limit)
+                        QS_power_functions.power_check[time_limit] = 1
+                        if operation:
+
+                            power_value = QS_power_functions.energy["QS_power_value"].get(time_limit)
+                            perform_operation(operation, power_value)
+
         if elapsed == 0:
-            conf_idle_callback()("active")
-        elif len(conf_idle_times()) > 2 and elapsed > conf_idle_times()[2]:
-            conf_idle_callback()("idle-suspend")
-            os.system(conf_suspend_command())
-        elif len(conf_idle_times()) > 2 and elapsed > conf_idle_times()[2] - 5.0:
-            conf_idle_callback()("idle-presuspend")
-        elif len(conf_idle_times()) > 1 and elapsed > conf_idle_times()[1]:
-            conf_idle_callback()("idle-lock")
-            self.ensure_locked()
-        elif len(conf_idle_times()) > 0 and elapsed > conf_idle_times()[0]:
-            conf_idle_callback()("idle")
+            if QS_power_functions.QS_light_score == 1:
+                restore_activity()
+                QS_power_functions.QS_light_score = 0
+        else:
+            if QS_power_functions.QS_light_score == 0:
+                QS_power_functions.QS_current_light = QS_power_functions.checked_current_brightness()
+                QS_power_functions.QS_light_score = 1
+            handle_idle(elapsed)
+
+
+
 
     def on_sleep(self) -> None:
-        conf_idle_callback()("sleep")
         if conf_lock_on_wakeup():
             self.ensure_locked(anim=False)
 
     def on_wakeup(self) -> None:
-        conf_idle_callback()("wakeup")
         if conf_lock_on_wakeup():
             self.ensure_locked()
 
@@ -1133,6 +1155,8 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
             self.animate_to(reducer, conf_anim_t())
 
         cmds: dict[str, Callable[[], Optional[str]]] = {
+            "terminate": lambda: self.terminate(),
+            "fullscreen_check": lambda: self.is_any_window_fullscreen(),
             "lock": lambda: self.ensure_locked(
                 anim="anim" in arg if arg is not None else False,
                 dim="dim" in arg if arg is not None else False
@@ -1249,7 +1273,7 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
         self.animate_to(reducer, conf_anim_t(), focus_lock)
 
         if dim:
-            conf_idle_callback()("lock")
+            print("lock")
 
     def terminate(self) -> None:
         def reducer(
@@ -1267,6 +1291,20 @@ class Layout(PyWM[View], Animate[PyWMDownstreamState], Animatable):
 
     def enter_launcher_overlay(self) -> None:
         self.enter_overlay(LauncherOverlay(self))
+
+    def is_any_window_fullscreen(self) -> bool:
+        """
+        Проверяет, находится ли любое окно на текущем рабочем пространстве в полноэкранном режиме.
+        Возвращает True, если хотя бы одно окно в полноэкранном режиме, иначе False.
+        """
+        # Получаем активное рабочее пространство
+        active_ws = self.get_active_workspace()
+
+        # Получаем состояние активного рабочего пространства
+        ws_state = self.state.get_workspace_state(active_ws)
+
+        # Проверяем, находится ли рабочее пространство в полноэкранном режиме
+        return ws_state.is_fullscreen()
 
     def toggle_overview(self, only_active_workspace: bool = False) -> None:
         def reducer(

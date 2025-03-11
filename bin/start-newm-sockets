@@ -1,0 +1,10 @@
+#!/usr/bin/python
+import os
+import subprocess
+
+os.system("mkdir -p ~/.config/newm/sockets/"),
+os.system("touch ~/.config/newm/sockets/lang.sock"),
+os.system("lsof -t ~/.config/newm/sockets/lang.sock | xargs kill -9"),
+print("starting lang socket"),
+os.system("/usr/bin/start-newm-lang-socket &")
+

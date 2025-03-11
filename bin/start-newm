@@ -31,5 +31,5 @@ if [ $# -eq 0 ]; then
 else
     echo "arguments are: $@"
 fi
-
+$DIR/start-newm-sockets &&
 exec $DIR/.start-newm "$args" > $LOGDIR/newm_log 2>&1

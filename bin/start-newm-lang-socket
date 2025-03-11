@@ -1,0 +1,63 @@
+#!/usr/bin/python
+import json
+import socket
+import threading
+import os
+
+# Конфигурация сервера
+os.system("mkdir -p ~/.config/newm/sockets/")
+home_dir = os.path.expanduser("~")
+SOCKET_PATH = f"{home_dir}/.config/newm/sockets/lang.sock"
+
+
+# Удаляем старый сокет, если он существует
+if os.path.exists(SOCKET_PATH):
+    os.remove(SOCKET_PATH)
+
+# Создаём сокет
+server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+server.bind(SOCKET_PATH)
+server.listen(1)
+
+# Инициализация переменной (JSON-объект)
+language_data = {}
+
+print("Сервер запущен. Ожидание соединений...")
+
+try:
+    while True:
+        conn, _ = server.accept()  # Принимаем подключение
+        with conn:
+            # Читаем данные от клиента
+            data = conn.recv(1024).decode("utf-8")
+            if not data:
+                continue
+
+            try:
+                # Парсим полученные данные как JSON
+                request = json.loads(data)
+
+                # Обработка команды `set_lang`
+                if request.get("command") == "set_lang":
+                    language_data = request.get("data", language_data)
+                    response = {"status": "success", "message": "Language set successfully."}
+
+                # Обработка команды `get_lang`
+                elif request.get("command") == "get_lang":
+                    response = {"status": "success", "data": language_data}
+
+                # Неизвестная команда
+                else:
+                    response = {"status": "error", "message": "Unknown command."}
+
+            except json.JSONDecodeError:
+                response = {"status": "error", "message": "Invalid JSON format."}
+
+            # Отправляем ответ клиенту
+            conn.sendall(json.dumps(response).encode("utf-8"))
+except KeyboardInterrupt:
+    print("server stoped successfull")
+finally:
+    server.close()
+    os.remove(SOCKET_PATH)
+

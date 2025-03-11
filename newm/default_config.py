@@ -5,82 +5,133 @@ import os
 import pwd
 import time
 import logging
-
-from newm.layout import Layout
-from newm.helper import BacklightManager, WobRunner, PaCtl
+import random
+import subprocess
 
 from pywm import (
+    PyWM,
+    PyWMModifiers,
+    PyWMOutput,
+    PyWMDownstreamState,
+    PYWM_MOD_CTRL,
+    PYWM_PRESSED,
     PYWM_MOD_LOGO,
-    PYWM_MOD_ALT
+    PYWM_MOD_ALT,
+    PYWM_TRANSFORM_90,
+    PYWM_TRANSFORM_180,
+    PYWM_TRANSFORM_270,
+    PYWM_TRANSFORM_FLIPPED,
+    PYWM_TRANSFORM_FLIPPED_90,
+    PYWM_TRANSFORM_FLIPPED_180,
+    PYWM_TRANSFORM_FLIPPED_270,
 )
+from newm.layout import Layout
+from newm.helper import WobRunner, PaCtl
+#from newm.helper.lang_layout import lang
 
 logger = logging.getLogger(__name__)
+
+def on_startup():
+    init_service = (
+        "export DISPLAY='$DISPLAY'\
+        export WAYLAND_DISPLAY='$WAYLAND_DISPLAY'\
+        export XDG_CURRENT_DESKTOP='$XDG_CURRENT_DESKTOP'",
+    ),
+
+    for service in init_service:
+        service = f"{service} &"
+        os.system(service),
 
 background = {
     'path': os.path.dirname(os.path.realpath(__file__)) + '/resources/wallpaper.jpg',
     'anim': True
 }
-
+corner_radius = 0		#Скругление обоев
+anim_time = 0.30		#Общее время анимации
+blend_time = 1.0		#Время анимации запуска и выхода
 outputs = [
-    { 'name': 'eDP-1' },
-    { 'name': 'virt-1', 'pos_x': -1280, 'pos_y': 0, 'width': 1280, 'height': 720 }
+    { 'name': 'eDP-1', 'anim': True },
+    { 'name': 'virt-1', 'pos_x': -1280, 'pos_y': 0, 'width': 1280, 'height': 720, 'anim': True }
 ]
 
 wob_runner = WobRunner("wob -a bottom -M 100")
-backlight_manager = BacklightManager(anim_time=1., bar_display=wob_runner)
-kbdlight_manager = BacklightManager(args="--device='*::kbd_backlight'", anim_time=1., bar_display=wob_runner)
-def synchronous_update() -> None:
-    backlight_manager.update()
-    kbdlight_manager.update()
-
 pactl = PaCtl(0, wob_runner)
+
+def on_startup():
+    init_service = (
+        "export DISPLAY='$DISPLAY'\
+        export WAYLAND_DISPLAY='$WAYLAND_DISPLAY'\
+        export XDG_CURRENT_DESKTOP='$XDG_CURRENT_DESKTOP'",
+    ),
+    for service in init_service:
+        service = f"{service} &"
+        os.system(service),
+
+pywm = {
+    'xkb_layout':'us,ru,jp,ua',
+    'xkb_variant': ',,kana,',
+    'xkb_options': "grp:alt_shift_toggle",
+    'xkb_model': "",
+    'enable_xwayland': True,
+    'xcursor_size': 16,
+    'tap_to_click': True,
+    'natural_scroll': False,
+    'focus_follows_mouse': True,
+    'contstrain_popups_to_toplevel': True,
+    'encourage_csd': False,
+    'texture_shaders': 'basic',
+    'renderer_mode': 'pywm',
+}
 
 def key_bindings(layout: Layout) -> list[tuple[str, Callable[[], Any]]]:
     return [
-        ("L-h", lambda: layout.move(-1, 0)),
-        ("L-j", lambda: layout.move(0, 1)),
-        ("L-k", lambda: layout.move(0, -1)),
-        ("L-l", lambda: layout.move(1, 0)),
-        ("L-u", lambda: layout.basic_scale(1)),
-        ("L-n", lambda: layout.basic_scale(-1)),
-        ("L-t", lambda: layout.move_in_stack(1)),
-
-        ("L-H", lambda: layout.move_focused_view(-1, 0)),
-        ("L-J", lambda: layout.move_focused_view(0, 1)),
-        ("L-K", lambda: layout.move_focused_view(0, -1)),
-        ("L-L", lambda: layout.move_focused_view(1, 0)),
-
-        ("L-C-h", lambda: layout.resize_focused_view(-1, 0)),
-        ("L-C-j", lambda: layout.resize_focused_view(0, 1)),
-        ("L-C-k", lambda: layout.resize_focused_view(0, -1)),
-        ("L-C-l", lambda: layout.resize_focused_view(1, 0)),
-
-        ("L-Return", lambda: os.system("alacritty &")),
+        ("C-A-t", lambda: os.system("kitty &")),
         ("L-q", lambda: layout.close_focused_view()),
 
-        ("L-p", lambda: layout.ensure_locked(dim=True)),
-        ("L-P", lambda: layout.terminate()),
-        ("L-C", lambda: layout.update_config()),
+        ("L-Left", lambda: layout.move(-1, 0)),
+        ("L-Down", lambda: layout.move(0, 1)),
+        ("L-Up", lambda: layout.move(0, -1)),
+        ("L-Right", lambda: layout.move(1, 0)),
+
+        ("L-s", lambda: layout.move_in_stack(1)),
+
+        ("L-space", lambda: (layout.toggle_fullscreen()) ),
+        ("L-S-space", lambda: layout.toggle_focused_view_floating()),
+
+        ("L-equal", lambda: layout.basic_scale(1)),
+        ("L-minus", lambda: layout.basic_scale(-1)),
+        ("L-KP_Add", lambda: layout.basic_scale(-1)),
+        ("L-KP_Subtract", lambda: layout.basic_scale(1)),
+
+        ("L-S-Left", lambda: layout.move_focused_view(-1, 0)),
+        ("L-S-Down", lambda: layout.move_focused_view(0, 1)),
+        ("L-S-Up", lambda: layout.move_focused_view(0, -1)),
+        ("L-S-Right", lambda: layout.move_focused_view(1, 0)),
+
+        ("L-C-Left", lambda: layout.resize_focused_view(-1, 0)),
+        ("L-C-Down", lambda: layout.resize_focused_view(0, 1)),
+        ("L-C-Up", lambda: layout.resize_focused_view(0, -1)),
+        ("L-C-Right", lambda: layout.resize_focused_view(1, 0)),
 
         ("L-f", lambda: layout.toggle_fullscreen()),
+        ("L-", lambda: layout.toggle_overview(only_active_workspace=True)),
+        ("L-A-l", lambda: layout.ensure_locked(dim=True)),
+        ("C-A-l", lambda: layout.terminate()),
 
-        ("L-", lambda: layout.toggle_overview()),
-
-        ("XF86MonBrightnessUp", lambda: backlight_manager.set(backlight_manager.get() + 0.1)),
-        ("XF86MonBrightnessDown", lambda: backlight_manager.set(backlight_manager.get() - 0.1)),
-        ("XF86KbdBrightnessUp", lambda: kbdlight_manager.set(kbdlight_manager.get() + 0.1)),
-        ("XF86KbdBrightnessDown", lambda: kbdlight_manager.set(kbdlight_manager.get() - 0.1)),
-        ("XF86AudioRaiseVolume", lambda: pactl.volume_adj(5)),
-        ("XF86AudioLowerVolume", lambda: pactl.volume_adj(-5)),
-        ("XF86AudioMute", lambda: pactl.mute()),
+        ("XF86MonBrightnessUp", lambda: os.system("brightnessctl set 2%+ &")),
+        ("XF86MonBrightnessDown", lambda: os.system("brightnessctl set 2%- &")),
+        ("XF86AudioRaiseVolume", lambda: os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+ &")),
+        ("XF86AudioLowerVolume", lambda: os.system("wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%- &")),
+        ("XF86AudioMute", lambda: os.system("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle &")),
+        ("XF86AudioMicMute", lambda: os.system("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle &")),
     ]
 
 panels = {
     'lock': {
-        'cmd': 'alacritty -e newm-panel-basic lock',
+        'cmd': 'kitty -e newm-panel-basic lock',
     },
     'launcher': {
-        'cmd': 'alacritty -e newm-panel-basic launcher'
+        'cmd': 'kitty -e newm-panel-basic launcher'
     },
     'top_bar': {
         'native': {
@@ -88,6 +139,7 @@ panels = {
             'texts': lambda: [
                 pwd.getpwuid(os.getuid())[0],
                 time.strftime("%c"),
+                subprocess.check_output(["/usr/lib/python3.12/site-packages/newm/helper/lang_layout/lang_watch"], text=True).replace('"', '')[:-1]
             ],
         }
     },
@@ -96,12 +148,8 @@ panels = {
             'enabled': True,
             'texts': lambda: [
                 "newm-next",
-                "version 0.4 ALPHA"
+                "version 0.4.3 ALPHA"
             ],
         }
     },
-}
-
-energy = {
-    'idle_callback': backlight_manager.callback
 }

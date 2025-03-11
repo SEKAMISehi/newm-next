@@ -1,0 +1,42 @@
+#!/bin/python
+import os
+import socket
+import json
+home_dir = os.path.expanduser("~")
+SOCKET_PATH = f"{home_dir}/.config/newm/sockets/lang.sock"
+
+def send_command(command, data=None):
+    # Создаём клиентский сокет
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.connect(SOCKET_PATH)
+        
+        # Формируем запрос
+        request = {"command": command}
+        if data is not None:
+            request["data"] = data
+        
+        # Отправляем запрос
+        client.sendall(json.dumps(request).encode("utf-8"))
+        
+        # Получаем ответ
+        response = client.recv(1024).decode("utf-8")
+        return json.loads(response)
+def shorten_layout_name(full_name):
+    """
+    Сокращает полное название раскладки до двухбуквенного кода.
+    Например, "English (us)" → "us", "Russian" → "ru".
+    """
+    # Приводим название к нижнему регистру для унификации
+    full_name_lower = full_name.lower()
+    
+    # Ищем совпадение в словаре
+    for key, value in LAYOUT_SHORTCUTS.items():
+        if key in full_name_lower:
+            return value
+    
+    # Если совпадение не найдено, возвращаем исходное название
+    return full_name
+# Получение значения переменной
+get_response = send_command("get_lang")
+data = get_response["data"]
+print(json.dumps(data["layout"]))
