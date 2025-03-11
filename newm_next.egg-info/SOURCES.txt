@@ -12,6 +12,8 @@ bin/newm-cmd
 bin/newm-panel-basic
 bin/newmctl
 bin/start-newm
+bin/start-newm-sockets
+bin/start-newm-lang-socket
 dev/DEV.org
 dev/TESTS.org
 dev/config_doc.py
