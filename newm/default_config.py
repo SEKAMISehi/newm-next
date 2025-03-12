@@ -139,7 +139,7 @@ panels = {
             'texts': lambda: [
                 pwd.getpwuid(os.getuid())[0],
                 time.strftime("%c"),
-                subprocess.check_output(["/usr/lib/python3.12/site-packages/newm/helper/lang_layout/lang_watch"], text=True).replace('"', '')[:-1]
+                subprocess.check_output(["/usr/bin/newm_lang_watch"], text=True).replace('"', '')[:-1]
             ],
         }
     },
