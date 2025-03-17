@@ -61,7 +61,6 @@ newm/gestures/provider/provider.py
 newm/gestures/provider/pyevdev_provider.py
 newm/gestures/provider/pyevdev_touchpad.py
 newm/helper/__init__.py
-newm/helper/backlight_manager.py
 newm/helper/bar_display.py
 newm/helper/execute.py
 newm/helper/pactl.py
