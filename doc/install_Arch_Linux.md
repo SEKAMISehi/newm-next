@@ -6,7 +6,7 @@ The easiest and safest way to install newm-next on Arch is by using its AUR pack
 
 example:
 ```sh
-yay -S newm-next-git
+yay -S newm-next-git-qs
 ```
 (subsitute `yay` with your aur helper,eg: `paru`)
 
@@ -20,20 +20,20 @@ Maybe you want to test features in development or help with debugging, whatever 
 1. Clone PKBUILD
 
 ```sh
-yay -G newm-next-git
+yay -G newm-next-git-qs
 ```
 
 2. Navigate to the downloaded folder
 
 ```sh
-cd newm-next-git
+cd newm-next-git-qs
 ```
 
 3. Clone pywm and newm
 
 ```sh
-git clone https://github.com/newm-next/pywm-next.git
-git clone https://github.com/newm-next/newm-next.git
+git clone https://github.com/SEKAMISehi/pywm-next.git
+git clone https://github.com/SEKAMISehi/newm-next.git
 ```
 
 4. Build and install
