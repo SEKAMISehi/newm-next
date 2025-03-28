@@ -3,6 +3,7 @@ newm.egg-info
 .mypy_cache
 newm/resources/*.mp4
 build/
+make/
 result
 
 # emacs stuffff
