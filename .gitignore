@@ -4,7 +4,7 @@ newm.egg-info
 newm/resources/*.mp4
 build/
 make/
-newm_next_qs.egg-info/
+newm_qs.egg-info/
 result
 
 # emacs stuffff

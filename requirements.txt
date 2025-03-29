@@ -3,4 +3,4 @@ psutil
 python-pam
 pyfiglet
 dasbus
-thefuzz
+rapidfuzz
