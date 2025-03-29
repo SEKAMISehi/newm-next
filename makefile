@@ -2,12 +2,12 @@
 INSTALL_DIR = ./make/newm
 
 # Основные команды
-.PHONY: all install run clean
+.PHONY: all make run clean
 
-all: install
+all: make
 
-install:  ## Установить в локальную директорию
-	pip install --target=$(INSTALL_DIR) . && mv ./make/newm/bin ./make/
+make:  ## Установить в локальную директорию
+	pip make --target=$(INSTALL_DIR) . && mv ./make/newm/bin ./make/
 
 run:  ## Запустить newm
 	$(INSTALL_DIR)/bin/start-newm
