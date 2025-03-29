@@ -7,7 +7,7 @@ INSTALL_DIR = ./make/newm
 all: make
 
 make:  ## Установить в локальную директорию
-	pip make --target=$(INSTALL_DIR) . && mv ./make/newm/bin ./make/
+	pip install --target=$(INSTALL_DIR) . && mv ./make/newm/bin ./make/
 
 run:  ## Запустить newm
 	$(INSTALL_DIR)/bin/start-newm
