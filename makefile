@@ -7,7 +7,7 @@ INSTALL_DIR = ./make/newm
 all: make
 
 make:  ## Установить в локальную директорию
-	pip install --target=$(INSTALL_DIR) . && rm -r ./make/bin && mv ./make/newm/bin ./make/ && git submodule update --init --remote --recursive && cd ./subprojects/pywm/ && make && cp -r ./make/bin/. ../../make/bin/. && cp -r ./make/pywm/. ../../make/newm/.
+	pip install --target=$(INSTALL_DIR) . && rm -r ./make/bin && mv ./make/newm/bin ./make/ && cp -r ./bin/. ./make/bin/. && git submodule update --init --remote --recursive && cd ./subprojects/pywm/ && make && cp -r ./make/bin/. ../../make/bin/. && cp -r ./make/pywm/. ../../make/newm/.
 
 run:  ## Запустить newm
 	$(INSTALL_DIR)/bin/start-newm
