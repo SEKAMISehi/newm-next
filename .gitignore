@@ -1,12 +1,26 @@
-newm.egg-info
-**/__pycache__
-.mypy_cache
-newm/resources/*.mp4
-build/
-newm_qs.egg-info/
-result
+newm/newm.egg-info
+newm/**/__pycache__
+newm/.mypy_cache
+newm/newm/resources/*.mp4
+newm/build/
+newm/newm_qs.egg-info/
+newm/result
+pywm/.projectile
+pywm/.ccls-cache
+pywm/result
+pywm/build/*
+pywm/compile_commands.json
+pywm/**/__pycache__/*
+pywm/pywm/*.so
+pywm/pywm/touchpad/tmp.png
+pywm/subprojects
+pywm/.mypy_cache
+pywm/pywm.egg-info
+pywm/_pywm.so
+pywm/.cache/*
+pywm/.idea/*
 
 # emacs stuffff
-*~
-\#*\#
-.\#*
+newm/*~
+newm/\#*\#
+newm/.\#*
