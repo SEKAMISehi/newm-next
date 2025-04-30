@@ -1,4 +1,0 @@
-[submodule "subprojects/pywm"]
-	path = subprojects/pywm
-	url = https://github.com/SEKAMISehi/pywm-next.git
-	branch = "new_maker"
