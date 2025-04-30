@@ -1,0 +1,3 @@
+[submodule "pywm/subprojects/wlroots"]
+	path = pywm/subprojects/wlroots
+	url = https://github.com/SEKAMISehi/wlroots.git

@@ -13,7 +13,6 @@ pywm/compile_commands.json
 pywm/**/__pycache__/*
 pywm/pywm/*.so
 pywm/pywm/touchpad/tmp.png
-pywm/subprojects
 pywm/.mypy_cache
 pywm/pywm.egg-info
 pywm/_pywm.so
