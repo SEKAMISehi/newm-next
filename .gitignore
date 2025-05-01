@@ -18,7 +18,7 @@ pywm/pywm.egg-info
 pywm/_pywm.so
 pywm/.cache/*
 pywm/.idea/*
-
+make/
 # emacs stuffff
 newm/*~
 newm/\#*\#
