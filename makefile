@@ -1,7 +1,7 @@
 # Пути
-INSTALL_DIR := ./make/newm
-BIN_DIR := ./make/bin
-WAYLAND_SESSION_DIR := ./make/wayland-sessions
+INSTALL_DIR := ./make/usr/lib/sqwm
+BIN_DIR := ./make/usr/bin
+WAYLAND_SESSION_DIR := ./make/usr/share/wayland-sessions
 PYWM_DIR := ./pywm
 NEWM_DIR := ./newm
 
@@ -24,8 +24,7 @@ install: prepare-dirs
 	pip install --target=../$(INSTALL_DIR) . --upgrade && \
 	cd ../ && \
 	cp -r $(INSTALL_DIR)/bin/* $(BIN_DIR)/ && \
-	rm -r $(INSTALL_DIR)/bin/ && \
-	mv ./make/newm ./make/bin/sqwm
+	rm -r $(INSTALL_DIR)/bin/
 	@echo "Installation complete. Run 'make run' to start newm."
 
 run: $(BIN_DIR)/start-newm
