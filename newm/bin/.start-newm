@@ -4,75 +4,75 @@ import sys
 import os
 import argparse
 
+def is_command_available(cmd):
+    try:
+        subprocess.run([cmd, "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except FileNotFoundError:
+        return False
+
 try:
     from newm import run
 except ImportError:
     print("Модуль 'newm' не найден в site-packages.")
+    if not is_command_available("sqwm-linker"):
+        print("❌ Команда 'sqwm-linker' не найдена.")
+        sys.exit(1)
+
     import site
     site_packages_paths = site.getsitepackages()
     for path in site_packages_paths:
-        # Запускаем команду (например, `some_command --arg value`)
         result = subprocess.run(
             ["sqwm-linker", path],
-            capture_output=True,  # захватываем stdout и stderr
-            text=True,           # возвращаем строки вместо байтов
+            capture_output=True,
+            text=True,
         )
-
-        # Проверяем код завершения (0 = успех, иначе ошибка)
         if result.returncode == 0:
-            from newm import run
+            try:
+                from newm import run
+                break
+            except ImportError:
+                continue
         else:
             print(f"❌ Ошибка (код {result.returncode}):", result.stderr)
-            sys.exit(1)  # Выход с ошибкой
-
+            sys.exit(1)
+    else:
+        print("❌ Модуль 'newm' не удалось установить или найти.")
+        sys.exit(1)
 
 def main():
-    # Настройка парсера аргументов
     parser = argparse.ArgumentParser(
         description='newm-qs Wayland compositor',
         epilog='Example: .start-newm --debug --config ~/.config/newm/config.py'
     )
+    parser.add_argument('-d', '--debug', action='store_true', help='enable debug mode')
+    parser.add_argument('-p', '--profile', action='store_true', help='enable profiling')
+    parser.add_argument('-c', '--config', type=str, help='path to config file')
 
-    parser.add_argument('-d', '--debug',
-                       action='store_true',
-                       help='enable debug mode')
-    parser.add_argument('-p', '--profile',
-                       action='store_true',
-                       help='enable profiling')
-    parser.add_argument('-c', '--config',
-                       type=str,
-                       help='path to config file')
-
-    # Разбираем аргументы
     try:
         args, unknown = parser.parse_known_args()
     except argparse.ArgumentError as e:
         print(f"Argument error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Вывод информации о запуске
+    if args.config and not os.path.isfile(args.config):
+        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
+        sys.exit(1)
+
     print("newm-next: hello there!")
     print(f"newm-next: version 0.4.4")
     print(f"newm-next: received arguments: {sys.argv[1:]}")
 
-    # Проверка неизвестных аргументов
     if unknown:
         print(f"Warning: Ignoring unknown arguments: {unknown}", file=sys.stderr)
 
-    # Проверка конфиг файла
-    if args.config:
-        if not os.path.isfile(args.config):
-            print(f"Error: Config file not found: {args.config}", file=sys.stderr)
-            sys.exit(1)
-        print(f"Using config file: {args.config}")
-    else:
-        print("Using default configuration")
-
-    # Запуск основного кода
     try:
         run(debug=args.debug,
             profile=args.profile,
             config_file=args.config)
+    except KeyboardInterrupt:
+        print("\nnewm-next: завершение работы...")
+        sys.exit(0)
     except Exception as e:
         print(f"Fatal error: {e}", file=sys.stderr)
         sys.exit(1)
