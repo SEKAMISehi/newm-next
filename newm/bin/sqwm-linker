@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Проверяем, что передана целевая директория
+set -euo pipefail
+
+# Проверяем аргументы
 if [ "$#" -ne 1 ]; then
     echo "Использование: $0 <целевая_директория>"
     exit 1
@@ -9,32 +11,57 @@ fi
 source_dir="/usr/lib/sqwm"
 target_dir="$1"
 
-# Проверяем существование исходной директории
+# Проверяем исходную директорию
 if [ ! -d "$source_dir" ]; then
     echo "Ошибка: исходная директория '$source_dir' не существует"
     exit 1
 fi
 
-# Создаём целевую директорию с правами sudo
-sudo mkdir -p "$target_dir"
+# Создаём целевую директорию
+sudo mkdir -p "$target_dir" || {
+    echo "Ошибка: не удалось создать целевую директорию"
+    exit 1
+}
 
-# Переходим в исходную директорию
-cd "$source_dir" || exit 1
+# Функция для создания ссылок
+create_link() {
+    local source_path="$1"
+    local rel_path="$2"
+    local target_path="$target_dir/$rel_path"
 
-# Находим все файлы и папки (кроме самой директории) и создаём для них симлинки
+    if [ ! -e "$target_path" ] && [ ! -L "$target_path" ]; then
+        sudo ln -s "$source_path" "$target_path" && \
+            echo "Создана ссылка: $rel_path" || \
+            echo "Ошибка: не удалось создать ссылку для $rel_path"
+        return $?
+    else
+        echo "Пропускаем: $rel_path уже существует"
+        return 0
+    fi
+}
+
+# Основная обработка
+cd "$source_dir" || {
+    echo "Ошибка: не удалось перейти в $source_dir"
+    exit 1
+}
+
+# Создаём ссылки для всех элементов в директории
 find . -mindepth 1 -print0 | while IFS= read -r -d '' item; do
-    # Получаем базовое имя элемента
-    item_name=$(basename "$item")
+    rel_path="${item#./}"
     source_path="$(realpath "$item")"
 
-    # Проверяем, существует ли уже такой файл или папка в целевой директории
-    if [ ! -e "$target_dir/$item_name" ]; then
-        # Создаём символическую ссылку с правами sudo
-        sudo ln -s "$source_path" "$target_dir/$item_name"
-        echo "Создана ссылка: $target_dir/$item_name -> $source_path"
-    else
-        echo "Пропускаем: $item_name уже существует в $target_dir"
+    # Создаём родительские директории в целевой папке
+    parent_dir="$target_dir/$(dirname "$rel_path")"
+    if [ ! -d "$parent_dir" ]; then
+        sudo mkdir -p "$parent_dir" || {
+            echo "Ошибка: не удалось создать директорию $parent_dir"
+            continue
+        }
     fi
+
+    create_link "$source_path" "$rel_path"
 done
 
 echo "Готово! Все ссылки созданы в $target_dir"
+exit 0
