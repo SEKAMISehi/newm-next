@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 import sys
 import os
+
+# Добавляем путь к sqwm-модулям
+sys.path.insert(0, "/usr/lib/sqwm")
+
 import argparse
 from newm import run
 
 def main():
     # Настройка парсера аргументов
     parser = argparse.ArgumentParser(
-        description='newm-next Wayland compositor',
-        epilog='Example: .start-newm --debug --config ~/.config/newm/config.yaml'
+        description='newm-qs Wayland compositor',
+        epilog='Example: .start-newm --debug --config ~/.config/newm/config.py'
     )
 
     parser.add_argument('-d', '--debug',
