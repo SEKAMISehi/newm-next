@@ -27,7 +27,6 @@ from pywm import (
 )
 from newm.layout import Layout
 from newm.helper import WobRunner, PaCtl
-#from newm.helper.lang_layout import lang
 
 logger = logging.getLogger(__name__)
 
@@ -147,8 +146,8 @@ panels = {
         'native': {
             'enabled': True,
             'texts': lambda: [
-                "newm-next",
-                "version 0.4.3 ALPHA"
+                "newm-qs",
+                "version 0.4.4 ALPHA"
             ],
         }
     },
