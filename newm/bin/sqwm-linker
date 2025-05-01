@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Проверяем, что передана целевая директория
+if [ "$#" -ne 1 ]; then
+    echo "Использование: $0 <целевая_директория>"
+    exit 1
+fi
+
+source_dir="/usr/lib/sqwm"
+target_dir="$1"
+
+# Проверяем существование исходной директории
+if [ ! -d "$source_dir" ]; then
+    echo "Ошибка: исходная директория '$source_dir' не существует"
+    exit 1
+fi
+
+# Создаём целевую директорию с правами sudo
+sudo mkdir -p "$target_dir"
+
+# Переходим в исходную директорию
+cd "$source_dir" || exit 1
+
+# Находим все файлы и папки (кроме самой директории) и создаём для них симлинки
+find . -mindepth 1 -print0 | while IFS= read -r -d '' item; do
+    # Получаем базовое имя элемента
+    item_name=$(basename "$item")
+    source_path="$(realpath "$item")"
+
+    # Проверяем, существует ли уже такой файл или папка в целевой директории
+    if [ ! -e "$target_dir/$item_name" ]; then
+        # Создаём символическую ссылку с правами sudo
+        sudo ln -s "$source_path" "$target_dir/$item_name"
+        echo "Создана ссылка: $target_dir/$item_name -> $source_path"
+    else
+        echo "Пропускаем: $item_name уже существует в $target_dir"
+    fi
+done
+
+echo "Готово! Все ссылки созданы в $target_dir"

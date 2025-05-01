@@ -1,12 +1,30 @@
 #!/usr/bin/env python3
+import subprocess
 import sys
 import os
-
-# Добавляем путь к sqwm-модулям
-sys.path.insert(0, "/usr/lib/sqwm")
-
 import argparse
-from newm import run
+
+try:
+    from newm import run
+except ImportError:
+    print("Модуль 'newm' не найден в site-packages.")
+    import site
+    site_packages_paths = site.getsitepackages()
+    for path in site_packages_paths:
+        # Запускаем команду (например, `some_command --arg value`)
+        result = subprocess.run(
+            ["sqwm-linker", path],
+            capture_output=True,  # захватываем stdout и stderr
+            text=True,           # возвращаем строки вместо байтов
+        )
+
+        # Проверяем код завершения (0 = успех, иначе ошибка)
+        if result.returncode == 0:
+            from newm import run
+        else:
+            print(f"❌ Ошибка (код {result.returncode}):", result.stderr)
+            sys.exit(1)  # Выход с ошибкой
+
 
 def main():
     # Настройка парсера аргументов
