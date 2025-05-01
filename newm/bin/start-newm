@@ -1,35 +1,51 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 SOURCE=${BASH_SOURCE[0]}
 while [ -h "$SOURCE" ]; do
-  DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+  DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
   SOURCE=$(readlink "$SOURCE")
-  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
-DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
 
-
-LOGDIR="$HOME/.cache/newm"
-mkdir -p $LOGDIR || LOGDIR="/tmp"
-
-pushd  $LOGDIR
-if  [ -e newm_log ];then
-  format=$(date -r newm_log +"%Y-%m-%d-%s")
-  mv newm_log  newm_log.old.$format
-
+# Configure logging
+LOGDIR="${HOME}/.cache/newm"
+if ! mkdir -p "$LOGDIR"; then
+    LOGDIR="/tmp/newm"
+    mkdir -p "$LOGDIR" || { echo "Cannot create log directory" >&2; exit 1; }
 fi
 
-popd
+# Rotate old log
+if [ -e "$LOGDIR/newm_log" ]; then
+    format=$(date -d "@$(stat -c %Y "$LOGDIR/newm_log" 2>/dev/null)" +"%Y-%m-%d-%s" 2>/dev/null || date +"%Y-%m-%d-%s")
+    mv -f "$LOGDIR/newm_log" "$LOGDIR/newm_log.old.$format" || true
+fi
 
-args=$@
-
+args=("$@")
 export XDG_SESSION_DESKTOP="newm-next"
-echo "newm-next version 0.4.2"
+
+echo "newm-next version 0.4.4"
 echo "script dir is $DIR"
 echo "log dir is $LOGDIR"
 if [ $# -eq 0 ]; then
     echo "no arguments provided"
 else
-    echo "arguments are: $@"
+    echo "arguments are: $*"
 fi
-$DIR/start-newm-sockets &&
-exec $DIR/.start-newm "$args" > $LOGDIR/newm_log 2>&1
+
+# Verify executables exist
+for cmd in "$DIR/start-newm-sockets" "$DIR/.start-newm"; do
+    if [ ! -x "$cmd" ]; then
+        echo "Error: $cmd not found or not executable" >&2
+        exit 1
+    fi
+done
+
+# Start services
+if ! "$DIR/start-newm-sockets"; then
+    echo "Failed to start sockets" >&2
+    exit 1
+fi
+
+exec "$DIR/.start-newm" "${args[@]}" >"$LOGDIR/newm_log" 2>&1

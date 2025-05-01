@@ -1,50 +1,59 @@
 #!/usr/bin/env python3
 import sys
+import os
 import argparse
-
 from newm import run
 
-no_args = False
+def main():
+    # Настройка парсера аргументов
+    parser = argparse.ArgumentParser(
+        description='newm-next Wayland compositor',
+        epilog='Example: .start-newm --debug --config ~/.config/newm/config.yaml'
+    )
 
-args = sys.argv
+    parser.add_argument('-d', '--debug',
+                       action='store_true',
+                       help='enable debug mode')
+    parser.add_argument('-p', '--profile',
+                       action='store_true',
+                       help='enable profiling')
+    parser.add_argument('-c', '--config',
+                       type=str,
+                       help='path to config file')
 
-args.pop(0)
+    # Разбираем аргументы
+    try:
+        args, unknown = parser.parse_known_args()
+    except argparse.ArgumentError as e:
+        print(f"Argument error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-print("newm-next: hello there!")
-print("newm-next: .start-newm args recived: ",args)
+    # Вывод информации о запуске
+    print("newm-next: hello there!")
+    print(f"newm-next: version 0.4.4")
+    print(f"newm-next: received arguments: {sys.argv[1:]}")
 
-if(len(args) == 1):
-    print("newm-next: [WARN] no arguments provided")
-    no_args = True
+    # Проверка неизвестных аргументов
+    if unknown:
+        print(f"Warning: Ignoring unknown arguments: {unknown}", file=sys.stderr)
 
-debug = False
-profile = False
-config_file = None
+    # Проверка конфиг файла
+    if args.config:
+        if not os.path.isfile(args.config):
+            print(f"Error: Config file not found: {args.config}", file=sys.stderr)
+            sys.exit(1)
+        print(f"Using config file: {args.config}")
+    else:
+        print("Using default configuration")
 
-if(no_args != True):
-    if('-d' or '--debug' in args):
-        debug = True
-        if '-d' in args:
-            args.remove('-d')
-        else:
-            args.remove('--debug')
+    # Запуск основного кода
+    try:
+        run(debug=args.debug,
+            profile=args.profile,
+            config_file=args.config)
+    except Exception as e:
+        print(f"Fatal error: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    if('-p' or '--profile' in args):
-        profile = True
-        if '-p' in args:
-            args.remove('-p')
-        else:
-            args.remove('--profile')
-
-    if('-c' or '--config' in args):
-        if '-c' in args:
-            args.remove('-c')
-        else:
-            args.remove('--config')
-
-        config_file = args[0]
-
-
-
-
-run(debug, profile, config_file)
+if __name__ == "__main__":
+    main()
