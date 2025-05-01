@@ -17,7 +17,6 @@ install: prepare-dirs
 	cd $(NEWM_DIR) && \
 	pip install --target=../$(INSTALL_DIR) . && \
 	cd ../ && \
-	cp -r $(INSTALL_DIR)/bin/. $(BIN_DIR) && \
 	cp -r $(NEWM_DIR)/bin/. $(BIN_DIR)/ && \
 	cp -r $(INSTALL_DIR)/newm/resources/newm.desktop $(WAYLAND_SESSION_DIR)/ && \
 	cd $(PYWM_DIR) && \
