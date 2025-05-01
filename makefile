@@ -17,13 +17,13 @@ install: prepare-dirs
 	cd $(NEWM_DIR) && \
 	pip install --target=../$(INSTALL_DIR) . && \
 	cd ../ && \
-	cp -r $(INSTALL_DIR)/bin/* $(BIN_DIR) && \
-	cp -r $(NEWM_DIR)/bin/* $(BIN_DIR)/ && \
+	cp -r $(INSTALL_DIR)/bin/. $(BIN_DIR) && \
+	cp -r $(NEWM_DIR)/bin/. $(BIN_DIR)/ && \
 	cp -r $(INSTALL_DIR)/newm/resources/newm.desktop $(WAYLAND_SESSION_DIR)/ && \
 	cd $(PYWM_DIR) && \
 	pip install --target=../$(INSTALL_DIR) . --upgrade && \
 	cd ../ && \
-	cp -r $(INSTALL_DIR)/bin/* $(BIN_DIR)/ && \
+	cp -r $(INSTALL_DIR)/bin/. $(BIN_DIR)/ && \
 	rm -r $(INSTALL_DIR)/bin/
 	@echo "Installation complete. Run 'make run' to start newm."
 
