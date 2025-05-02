@@ -47,6 +47,12 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help='enable debug mode')
     parser.add_argument('-p', '--profile', action='store_true', help='enable profiling')
     parser.add_argument('-c', '--config', type=str, help='path to config file')
+    parser.add_argument('-l', '--linker', action='store_true', help='run modules linker before starting')
+    if args.linker:
+        print("Запуск линкера модулей...")
+        if not run_linker():
+            sys.exit(1)
+        print("Линкер завершил работу.")
 
     try:
         args, unknown = parser.parse_known_args()

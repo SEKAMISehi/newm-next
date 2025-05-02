@@ -43,11 +43,6 @@ Prerequisites for PyWM, apart from Python, are given by [wlroots](https://gitlab
 * pixman
 * libseat
 
-
-```
-pip3 install git+https://github.com/newm-next/pywm-next
-```
-
 In case of issues, clone the repo and execute `git submodule update --init --recursive && meson build && ninja -C build` in order to debug.
 
 ## Configuration
