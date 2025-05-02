@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 set -euo pipefail
 
 SOURCE=${BASH_SOURCE[0]}
@@ -48,4 +48,4 @@ if ! "$DIR/start-newm-sockets"; then
     exit 1
 fi
 
-exec "$DIR/.start-newm" "${args[@]}" >"$LOGDIR/newm_log" 2>&1
+exec -a newm python3 "$DIR/.start-newm" "${args[@]}" >"$LOGDIR/newm_log" 2>&1
