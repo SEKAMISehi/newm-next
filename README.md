@@ -12,7 +12,7 @@
 
 данный проект является форком проета newm-next и скорее всего будет идти своим независимым путём.
 Пока-что лицензия сохраняется MIT но в будущем в случае крупный обновлений проект перейдёт на GNU/GPL.
-Текущая редакция лицензии: [./LICENSE](./LICENSE)
+Текущая редакция лицензии: [./LICENSE](LICENSE)
 
 ## идея
 
@@ -102,9 +102,7 @@ start-newm -d
 
 ### информация по конфигурированию
 
-- изначально композитор ищет конфиг в домашней директории `$HOME/.config/newm/config.py`, если не находит то ищет в etc `/etc/newm/config.py`, если там тоже нет то берёт базовый из корня проекта `default_config.py`.
-
-The `default_config.py` file can be found in the [repo](newm/default_config.py) or on your computer at `/usr/lib/qswm/newm/default_config.py`
+- изначально композитор ищет конфиг в домашней директории `$HOME/.config/newm/config.py`, если не находит то ищет в etc `/etc/newm/config.py`, если там тоже нет то берёт базовый из корня проекта [repo](newm/newm/default_config.py) `default_config.py`.
 
 скопируйте содержимое в файла в `$HOME/.config/newm/config.py` для дальнейшей его модифицкации под свои нужды.
 
