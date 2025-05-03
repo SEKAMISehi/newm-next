@@ -6,13 +6,13 @@ PYWM_DIR := ./pywm
 NEWM_DIR := ./newm
 
 # Основные команды
-.PHONY: all install run clean prepare-dirs
+.PHONY: all build run clean prepare-dirs
 
-all: install
+all: build
 
 prepare-dirs: $(INSTALL_DIR) $(BIN_DIR) $(WAYLAND_SESSION_DIR)
 
-install: prepare-dirs
+build: prepare-dirs
 	@echo "Installing newm..."
 	cd $(NEWM_DIR) && \
 	pip install --target=../$(INSTALL_DIR) . && \
