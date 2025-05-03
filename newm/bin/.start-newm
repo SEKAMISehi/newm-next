@@ -2,84 +2,96 @@ import subprocess
 import sys
 import os
 import argparse
+import site
+from shutil import which
 
-def is_command_available(cmd):
-    try:
-        subprocess.run([cmd, "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return True
-    except FileNotFoundError:
+class LinkerUI:
+    @staticmethod
+    def print_success(message: str):
+        print(f"✓ {message}")
+
+    @staticmethod
+    def print_error(message: str):
+        print(f"❌ {message}", file=sys.stderr)
+
+def is_command_available(cmd: str) -> bool:
+    return which(cmd) is not None
+
+def run_linker() -> bool:
+    linker_path = which("sqwm-linker")
+    if not linker_path:
+        LinkerUI.print_error("Команда 'sqwm-linker' не найдена в PATH")
+        LinkerUI.print_error(f"Текущий PATH: {os.getenv('PATH')}")
         return False
 
-try:
-    from newm import run
-except ImportError:
-    print("Модуль 'newm' не найден в site-packages.")
-    if not is_command_available("sqwm-linker"):
-        print("❌ Команда 'sqwm-linker' не найдена.")
-        sys.exit(1)
+    if not os.access(linker_path, os.X_OK):
+        LinkerUI.print_error(f"Нет прав на выполнение скрипта: {linker_path}")
+        return False
 
-    import site
-    site_packages_paths = site.getsitepackages()
-    for path in site_packages_paths:
-        result = subprocess.run(
-            ["sqwm-linker", path],
-            capture_output=True,
-            text=True,
+    success = True
+    for path in site.getsitepackages():
+        print(f"\nЗапуск линкера для: {path}")
+        process = subprocess.Popen(
+            ["bash", linker_path, path],
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            text=True
         )
-        if result.returncode == 0:
-            try:
-                from newm import run
-                break
-            except ImportError:
-                continue
+
+        return_code = process.wait()
+        if return_code != 0:
+            LinkerUI.print_error(f"Ошибка (код {return_code}) при связывании {path}")
+            success = False
+            break
         else:
-            print(f"❌ Ошибка (код {result.returncode}):", result.stderr)
-            sys.exit(1)
-    else:
-        print("❌ Модуль 'newm' не удалось установить или найти.")
-        sys.exit(1)
+            LinkerUI.print_success(f"Успешно завершено для {path}")
+
+    return success
+
+def import_newm() -> bool:
+    try:
+        __import__("newm")
+        return True
+    except ImportError:
+        return False
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='newm-qs Wayland compositor',
-        epilog='Example: .start-newm --debug --config ~/.config/newm/config.py'
-    )
+    parser = argparse.ArgumentParser(description='newm-qs Wayland compositor')
     parser.add_argument('-d', '--debug', action='store_true', help='enable debug mode')
     parser.add_argument('-p', '--profile', action='store_true', help='enable profiling')
     parser.add_argument('-c', '--config', type=str, help='path to config file')
     parser.add_argument('-l', '--linker', action='store_true', help='run modules linker before starting')
-    if args.linker:
-        print("Запуск линкера модулей...")
+
+    args = parser.parse_args()
+
+    if args.linker or not import_newm():
+        print("\nПодготовка линкера модулей...")
         if not run_linker():
+            LinkerUI.print_error("Линкер завершился с ошибками")
             sys.exit(1)
-        print("Линкер завершил работу.")
+
+        if not import_newm():
+            LinkerUI.print_error("Модуль 'newm' недоступен после линковки")
+            sys.exit(1)
 
     try:
-        args, unknown = parser.parse_known_args()
-    except argparse.ArgumentError as e:
-        print(f"Argument error: {e}", file=sys.stderr)
+        from newm import run
+    except ImportError as e:
+        LinkerUI.print_error(f"Не удалось импортировать newm: {str(e)}")
         sys.exit(1)
 
     if args.config and not os.path.isfile(args.config):
-        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
+        LinkerUI.print_error(f"Config file not found: {args.config}")
         sys.exit(1)
 
-    print("newm-next: hello there!")
-    print(f"newm-next: version 0.4.4")
-    print(f"newm-next: received arguments: {sys.argv[1:]}")
-
-    if unknown:
-        print(f"Warning: Ignoring unknown arguments: {unknown}", file=sys.stderr)
-
+    print("\nnewm-qs: запуск...")
     try:
-        run(debug=args.debug,
-            profile=args.profile,
-            config_file=args.config)
+        run(debug=args.debug, profile=args.profile, config_file=args.config)
     except KeyboardInterrupt:
-        print("\nnewm-next: завершение работы...")
+        print("\nЗавершение работы...")
         sys.exit(0)
     except Exception as e:
-        print(f"Fatal error: {e}", file=sys.stderr)
+        LinkerUI.print_error(f"Ошибка: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

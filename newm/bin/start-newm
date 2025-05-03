@@ -22,16 +22,31 @@ if [ -e "$LOGDIR/newm_log" ]; then
     mv -f "$LOGDIR/newm_log" "$LOGDIR/newm_log.old.$format" || true
 fi
 
-args=("$@")
-export XDG_SESSION_DESKTOP="newm-next"
+# Process arguments
+linker_flag=""
+args=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -l|--linker)
+            linker_flag="--linker"
+            shift
+            ;;
+        *)
+            args+=("$1")
+            shift
+            ;;
+    esac
+done
 
-echo "newm-next version 0.4.4"
+export XDG_SESSION_DESKTOP="newm-qs"
+
+echo "newm-qs version 0.4.4"
 echo "script dir is $DIR"
 echo "log dir is $LOGDIR"
-if [ $# -eq 0 ]; then
+if [ ${#args[@]} -eq 0 ]; then
     echo "no arguments provided"
 else
-    echo "arguments are: $*"
+    echo "arguments are: ${args[*]}"
 fi
 
 # Verify executables exist
@@ -46,6 +61,11 @@ done
 if ! "$DIR/start-newm-sockets"; then
     echo "Failed to start sockets" >&2
     exit 1
+fi
+
+# Add linker flag if specified
+if [ -n "$linker_flag" ]; then
+    args+=("$linker_flag")
 fi
 
 exec -a newm python3 "$DIR/.start-newm" "${args[@]}" >"$LOGDIR/newm_log" 2>&1
